@@ -1,0 +1,61 @@
+🧠 Task 1: List vs Vector in Java
+Feature	List (Interface)	Vector (Class)
+Type	Interface	Concrete class (implements List)
+Thread Safety	❌ Not thread-safe by default	✅ Thread-safe (every method is synchronized)
+Performance	Faster → no synchronization overhead	Slower → synchronization on every method
+Synchronization	Must be manually synchronized using Collections.synchronizedList()	Built-in synchronization
+Legacy?	Modern	Legacy class (old Java 1.0)
+Usage Recommendation	Preferred	Avoid unless strict thread-safety needed
+Summary
+
+List is just an interface (like a contract).
+
+Vector is an old synchronized implementation.
+
+Today we usually use ArrayList, not Vector.
+
+Use Case
+Use Case	Recommended
+High-performance, single-threaded	ArrayList
+Need simple thread safety	Collections.synchronizedList(new ArrayList<>())
+Legacy systems requiring Vector	Vector
+🧠 Task 2: HashSet vs LinkedHashSet
+Feature	HashSet	LinkedHashSet
+Order of Elements	❌ No order guaranteed	✅ Maintains insertion order
+Internal Structure	Hash table	Hash table + doubly linked list
+Performance (add, remove, contains)	Fastest (O(1))	Slightly slower (O(1) but extra linked list maintenance)
+Null Elements	Allows 1 null	Allows 1 null
+Memory Usage	Lower	Higher (because of linked list)
+Use Case	When order does not matter	When you need predictable iteration order
+Summary
+
+HashSet = Highest performance, no order.
+
+LinkedHashSet = Keeps insertion order, slightly slower.
+
+🧠 Task 3: String vs StringBuilder vs StringBuffer
+Feature	String	StringBuilder	StringBuffer
+Mutability	❌ Immutable	✅ Mutable	✅ Mutable
+Thread Safety	Thread-safe? ❌ No	❌ No	✅ Yes (synchronized)
+Performance	Slow for modifications (new object created each time)	Fastest	Slower due to synchronization
+Use Case	Constant text, low modification	High-performance String manipulation	Multi-threaded string modification
+🚀 Mutability
+String
+String s = "Hello";
+s = s + " World"; 
+// Creates a NEW string object every time
+
+StringBuilder
+StringBuilder sb = new StringBuilder("Hello");
+sb.append(" World"); 
+// Changes the same object → efficient
+
+StringBuffer
+
+Same as StringBuilder, but all methods are synchronized.
+
+🚀 When to Use What?
+Scenario	Best Choice
+Constant text	String
+Many modifications in 1 thread (e.g., loops, concatenation)	StringBuilder
+Many modifications in multiple threads	StringBuffer
