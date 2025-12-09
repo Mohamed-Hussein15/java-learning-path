@@ -22,6 +22,7 @@ public class AccountValidationServiceImpl implements AccountValidationService {
         String regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@#$%^&+=!()_\\-{}\\[\\]:;\"'<>,.?/]).{8,}$";
 
         return password.matches(regex);
+//        return true;
     }
 
     @Override
