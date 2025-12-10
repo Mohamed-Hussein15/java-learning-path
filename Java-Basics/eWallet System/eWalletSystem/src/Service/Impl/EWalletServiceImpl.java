@@ -1,5 +1,6 @@
 package Service.Impl;
 
+import Exceptions.*;
 import Model.Account;
 import Service.AccountService;
 import Service.AccountValidationService;
@@ -103,17 +104,14 @@ public class EWalletServiceImpl implements ApplicationService {
         if(Objects.isNull(account)){
             return;
         }
-        Integer isAccountCreated = accountService.createAccount(account);
-        if(isAccountCreated == 3){
+        try{
+            accountService.createAccount(account);
             System.out.println("Account created successfully");
             profile(account);
+        } catch (AccountAlreadyExistException e) {
+            System.out.println(e.getMessage());
         }
-        else if (isAccountCreated == 2){
-            System.out.println("Account already exist with same phone number " + account.getPhoneNumber());
-        }
-        else if (isAccountCreated == 1){
-            System.out.println("Account already exist with same username " + account.getUserName());
-        }
+
     }
 
     public Account getAccount(boolean login){
@@ -216,17 +214,12 @@ public class EWalletServiceImpl implements ApplicationService {
             return;
         }
 
-        int result = accountService.changePassword(account, oldPassword, newPassword);
-        if(result == 1){
-            System.out.println("Incorrect old password.");
-        }
-        if(result == 2){
-            System.out.println("New password cannot be same as old password.");
-        }
-        if(result == 3){
+        try{
+            accountService.changePassword(account, oldPassword, newPassword);
             System.out.println("Password changed successfully.");
+        } catch (InvalidCredentialsException e) {
+            System.out.println(e.getMessage());
         }
-
     }
 
     private void transferMoney(Account account) {
@@ -242,35 +235,19 @@ public class EWalletServiceImpl implements ApplicationService {
         System.out.println("please enter the amount you want to transfer");
         double amount =  InputUtil.readDouble();
 
-        Account toAccount = accountService.findAccountByPhone(phoneNumber);
 
-        int result = accountService.transferMoney(account, toAccount, amount);
+        try {
+            Account toAccount = accountService.findAccountByPhone(phoneNumber);
+            accountService.transferMoney(account, toAccount, amount);
+            System.out.println("Transfer successful! Your new balance: " + account.getBalance());
+        } catch (AccountNotFoundException |
+                 SameAccountException |
+                 InvalidAmountException |
+                 InsufficientBalanceException ex) {
 
-        switch (result) {
-            case 1:
-                System.out.println("Sender account does not exist!");
-                break;
-            case 2:
-                System.out.println("Receiver account does not exist!");
-                break;
-            case 3:
-                System.out.println("Cannot transfer to the same account!");
-                break;
-            case 4:
-                System.out.println("Invalid amount! Amount must be > 0.");
-                break;
-            case 5:
-                System.out.println("Minimum allowed transfer is 100 EGP.");
-                break;
-            case 6:
-                System.out.println("Insufficient balance!");
-                break;
-            case 7:
-                System.out.println("Transfer successful! Your new balance: " + account.getBalance());
-                break;
-            default:
-                System.out.println("Unknown error.");
+            System.out.println(ex.getMessage());
         }
+
     }
 
 
@@ -289,43 +266,28 @@ public class EWalletServiceImpl implements ApplicationService {
         System.out.println("please enter the amount you want to withdraw");
 //        Scanner sc = new Scanner(System.in);
         double amount = InputUtil.readDouble();
-        Integer withdrawSuccess = accountService.withdraw(account, amount);
 
-        if(withdrawSuccess == 4){
-            System.out.println("withdraw success, your balance: " + account.getBalance());
+        try{
+            accountService.withdraw(account, amount);
+            System.out.println("Withdraw successful! Your new balance: " + account.getBalance());
+        } catch (AccountNotFoundException |
+                InvalidAmountException |
+                InsufficientBalanceException ex) {
+            System.out.println(ex.getMessage());
         }
-
-        else if(withdrawSuccess == 3){
-            System.out.println("no enough balance");
-        }
-
-        else if(withdrawSuccess == 2){
-            System.out.println("amount must be greater than or equal to 100");
-        }
-
-        else if (withdrawSuccess == 1) {
-            System.out.println("account not found");
-        }
-
-
     }
 
     private void deposit(Account account) {
         System.out.println("please enter the amount you want to deposit");
 //        Scanner sc = new Scanner(System.in);
         double amount = InputUtil.readDouble();
-        Integer depositSuccess = accountService.deposit(account, amount);
 
-        if(depositSuccess == 3){
-            System.out.println("deposit success, your balance: " + account.getBalance());
-        }
-
-        else if(depositSuccess == 2){
-            System.out.println("amount must be greater than or equal to 100");
-        }
-
-        else if (depositSuccess == 1) {
-            System.out.println("account not found");
+        try{
+            accountService.deposit(account, amount);
+            System.out.println("Deposit successful! Your new balance: " + account.getBalance());
+        } catch (AccountNotFoundException |
+                 InvalidAmountException ex){
+            System.out.println(ex.getMessage());
         }
     }
 }

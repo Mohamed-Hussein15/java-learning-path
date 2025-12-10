@@ -1,5 +1,6 @@
 package Service.Impl;
 
+import Exceptions.*;
 import Model.Account;
 import Model.EWalletSystem;
 import Service.AccountService;
@@ -27,43 +28,43 @@ public class AccountServiceImpl implements AccountService {
 //    }
 
     @Override
-    public Integer createAccount(Account account) {
+    public void createAccount(Account account) {
 
         Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
         boolean checkPhoneNumber = eWalletSystem.getAccounts().stream().anyMatch(acc -> acc.getPhoneNumber().equals(account.getPhoneNumber()));
         if (optionalAccount.isPresent()) {
-            return 1;
+            throw new AccountAlreadyExistException("Account already exist with same username" + account.getUserName());
         }
 
         if (checkPhoneNumber) {
-            return 2;
+            throw new AccountAlreadyExistException("Account already exist with same phone number " + account.getPhoneNumber());
         }
 
         eWalletSystem.getAccounts().add(account);
-
-        return 3;
     }
 
     @Override
-    public Integer transferMoney(Account fromAccount, Account toAccount, double amount) {
+    public void transferMoney(Account fromAccount, Account toAccount, double amount) {
         boolean fromExists = getAccountByPhoneNumber(fromAccount);
         boolean toExists = getAccountByPhoneNumber(toAccount);
 
-        if (!fromExists) return 1;   // from account does not exist
-        if (!toExists) return 2;     // to account does not exist
+        if (!fromExists) {
+            throw new AccountNotFoundException("Sender account does not exist!");
+        }
+        if (!toExists) {
+            throw new AccountNotFoundException("Receiver account does not exist!");
+        }
         if (fromAccount.getPhoneNumber().equals(toAccount.getPhoneNumber()))
-            return 3;  // same account
+            throw new SameAccountException("Cannot transfer to the same account!");
         if (amount <= 0)
-            return 4;                     // invalid amount
+            throw new InvalidAmountException("Invalid amount! Amount must be > 0.");
         if (amount < 100)
-            return 5;                    // below minimum amount
+            throw new InvalidAmountException("Minimum allowed transfer is 100 EGP.");
         if (fromAccount.getBalance() < amount)
-            return 6; // insufficient balance
+            throw new InsufficientBalanceException("Insufficient balance!");
 
         fromAccount.setBalance(fromAccount.getBalance() - amount);
         toAccount.setBalance(toAccount.getBalance() + amount);
-
-        return 7;
     }
 
     @Override
@@ -78,23 +79,24 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public Integer changePassword(Account account, String oldPassword, String newPassword) {
-//        Account matchingAccount = findAccountByPassword(account.getPassword());
+    public void changePassword(Account account, String oldPassword, String newPassword) {
         if  (!account.getPassword().equals(oldPassword)) {
-            return 1;
+//            return 1;
+            throw new InvalidCredentialsException("Incorrect old password.");
         }
         if (oldPassword.equals(newPassword)) {
-            return 2;  // New password same as old
+//            return 2;  // New password same as old
+            throw new InvalidCredentialsException("New password cannot be same as old password.");
         }
         account.setPassword(newPassword);
-            return 3;
     }
 
 
     public Account findAccountByPassword(String password) {
         Optional<Account> optionalAccount = findOptionalAccountByPassword(password);
         if (optionalAccount.isEmpty()) {
-            return null;
+//            return null;
+            throw new AccountNotFoundException("Account not found");
         }
         return optionalAccount.get();
 
@@ -106,52 +108,59 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public Account findAccountByPhone(String phoneNumber) {
-        return eWalletSystem.getAccounts().stream().filter(acc -> acc.getPhoneNumber().equals(phoneNumber)).findFirst().orElse(null);
+        return eWalletSystem.getAccounts()
+                .stream()
+                .filter(acc -> acc.getPhoneNumber().equals(phoneNumber))
+                .findFirst()
+                .orElseThrow(() -> new AccountNotFoundException("Account with phone " + phoneNumber + " not found"));
     }
 
     @Override
     public Account getAccountByUsername(Account account) {
         Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
         if (optionalAccount.isEmpty()) {
-            return null;
+//            return null;
+            throw new AccountNotFoundException("Account not found");
         }
         return optionalAccount.get();
     }
 
     @Override
-    public Integer deposit(Account account, double amount) {
+    public void deposit(Account account, double amount) {
         Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
         if (optionalAccount.isEmpty()) {
-            return 1;
+//            return 1;
+            throw new AccountNotFoundException("Account not found");
         }
 
         if (amount < 100) {
-            return 2;
+//            return 2;
+            throw new InvalidAmountException("Amount must be greater than or equal to 100");
         }
 
         Account accountToDeposit = optionalAccount.get();
         accountToDeposit.setBalance(accountToDeposit.getBalance() + amount);
-
-        return 3;
     }
 
     @Override
-    public Integer withdraw(Account account, double amount) {
+    public void withdraw(Account account, double amount) {
         Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
 
         if (optionalAccount.isEmpty()) {
-            return 1;
+//            return 1;
+            throw new AccountNotFoundException("Account not found");
         }
         if (amount < 100) {
-            return 2;
+//            return 2;
+            throw new InvalidAmountException("Amount must be greater than or equal to 100");
         }
 
         Account accountWithdraw = optionalAccount.get();
         if (accountWithdraw.getBalance() < amount) {
-            return 3;
+//            return 3;
+            throw new InsufficientBalanceException("Insufficient balance");
         }
         accountWithdraw.setBalance(accountWithdraw.getBalance() - amount);
-        return 4;
     }
 
     private Optional<Account> getOptionalAccountByUsername(Account account) {
