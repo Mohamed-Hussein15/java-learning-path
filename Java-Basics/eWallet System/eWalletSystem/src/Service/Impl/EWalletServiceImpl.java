@@ -5,13 +5,13 @@ import Model.Account;
 import Service.AccountService;
 import Service.AccountValidationService;
 import Service.ApplicationService;
+import Service.HistoryService;
 import Util.InputUtil;
-
 import java.util.Objects;
-import java.util.Scanner;
 
 public class EWalletServiceImpl implements ApplicationService {
     private AccountService accountService = new AccountServiceImpl();
+    private HistoryService historyService = new HistoryServiceImpl();
 
     private AccountValidationService accountValidationService = new AccountValidationServiceImpl();
 
@@ -54,49 +54,39 @@ public class EWalletServiceImpl implements ApplicationService {
         }
     }
 
-    private void login(){
+    private void login() {
 
-        Account account = getAccount(true);
-
-        if(Objects.isNull(account)){
+        Account tempAccount = getAccount(true);
+        if (tempAccount == null) {
             return;
         }
-//        boolean loginSuccess = accountService.getAccountByUsernameAndPassword(account);
-//        if(loginSuccess){
-//            System.out.println("login successful");
-//            profile(account);
-//        }
-        boolean loginSuccess = accountService.getAccountByUsernameAndPassword(account);
 
-        if(loginSuccess){
-            // Fetch the REAL stored account
-            Account realAccount = accountService.getAccountByUsername(account);
+        boolean loginSuccess = accountService.getAccountByUsernameAndPassword(tempAccount);
+
+        if (loginSuccess) {
+            Account realAccount = accountService.getAccountByUsername(tempAccount);
+            if (!realAccount.isActive()) {
+                historyService.log(realAccount.getUserName(), "LOGIN", false);
+                System.out.println("Account is inactive. Contact admin.");
+                return;
+            }
+
+            historyService.log(realAccount.getUserName(), "LOGIN", true);
 
             System.out.println("login successful");
-            profile(realAccount);
-        }
 
-        else {
+            if (realAccount.isAdmin()) {
+                adminPanel(realAccount);
+            } else {
+                profile(realAccount);
+            }
+
+        } else {
+            historyService.log(tempAccount.getUserName(), "LOGIN", false);
+
             System.out.println("invalid username or password");
         }
-
     }
-
-//    private void signup(){
-//
-//        Account account = getAccount(false);
-//        if(Objects.isNull(account)){
-//            return;
-//        }
-//        boolean isAccountCreated = accountService.createAccount(account);
-//        if(isAccountCreated){
-//            System.out.println("Account created successfully");
-//            profile(account);
-//        }
-//        else{
-//            System.out.println("Account already exist with same username " + account.getUserName());
-//        }
-//    }
 
     private void signup(){
 
@@ -156,12 +146,13 @@ public class EWalletServiceImpl implements ApplicationService {
 
         return new Account(username, password, phoneNumber, address, age);
     }
+
     private void profile(Account account){
         boolean logout = false;
         int counter = 0;
         while (true){
             System.out.println("-----------> Services <-----------");
-            System.out.println("1.deposit        2.withdraw        3.show account details         4.transfer Money         5.change password         6.logout");
+            System.out.println("1.deposit        2.withdraw        3.show account details         4.transfer Money         5.change password         6.History          7.logout");
 //            Scanner sc = new Scanner(System.in);
             System.out.println("please choose the service needed");
             int choice = InputUtil.readInt();
@@ -183,6 +174,9 @@ public class EWalletServiceImpl implements ApplicationService {
                     changePassword(account);
                     break;
                 case 6:
+                    showHistory(account);
+                    break;
+                case 7:
                     System.out.println("have a nice day");
                     logout = true;
                     break;
@@ -239,6 +233,11 @@ public class EWalletServiceImpl implements ApplicationService {
         try {
             Account toAccount = accountService.findAccountByPhone(phoneNumber);
             accountService.transferMoney(account, toAccount, amount);
+            historyService.log(account.getUserName(),
+                    "TRANSFER TO " + toAccount.getUserName() + ": " + amount, true);
+
+            historyService.log(toAccount.getUserName(),
+                    "TRANSFER FROM " + account.getUserName() + ": " + amount, true);
             System.out.println("Transfer successful! Your new balance: " + account.getBalance());
         } catch (AccountNotFoundException |
                  SameAccountException |
@@ -246,6 +245,8 @@ public class EWalletServiceImpl implements ApplicationService {
                  InsufficientBalanceException ex) {
 
             System.out.println(ex.getMessage());
+            historyService.log(account.getUserName(),
+                    "TRANSFER FAILED: " + amount, false);
         }
 
     }
@@ -269,25 +270,103 @@ public class EWalletServiceImpl implements ApplicationService {
 
         try{
             accountService.withdraw(account, amount);
+            historyService.log(account.getUserName(), "WITHDRAW: " + amount, true);
             System.out.println("Withdraw successful! Your new balance: " + account.getBalance());
         } catch (AccountNotFoundException |
                 InvalidAmountException |
                 InsufficientBalanceException ex) {
             System.out.println(ex.getMessage());
+            historyService.log(account.getUserName(), "WITHDRAW: " + amount, false);
         }
     }
 
     private void deposit(Account account) {
         System.out.println("please enter the amount you want to deposit");
-//        Scanner sc = new Scanner(System.in);
         double amount = InputUtil.readDouble();
 
-        try{
+        try {
             accountService.deposit(account, amount);
-            System.out.println("Deposit successful! Your new balance: " + account.getBalance());
-        } catch (AccountNotFoundException |
-                 InvalidAmountException ex){
-            System.out.println(ex.getMessage());
+            historyService.log(account.getUserName(), "DEPOSIT: " + amount, true);
+            System.out.println("Deposit successful!");
+        } catch (Exception e) {
+            historyService.log(account.getUserName(), "DEPOSIT: " + amount, false);
+            System.out.println(e.getMessage());
         }
     }
+
+    private void showHistory(Account account) {
+        System.out.println("----- Transaction History -----");
+
+        var historyList = historyService.getHistory(account.getUserName());
+
+        if (historyList.isEmpty()) {
+            System.out.println("No history found.");
+            return;
+        }
+
+        historyList.forEach(System.out::println);
+
+        System.out.println("--------------------------------");
+    }
+
+    private void adminPanel(Account admin) {
+        while (true) {
+            System.out.println("------ ADMIN PANEL ------");
+            System.out.println("1. View all accounts");
+            System.out.println("2. Delete account");
+            System.out.println("3. Deactivate account");
+            System.out.println("4. Logout");
+
+            int choice = InputUtil.readInt();
+
+            switch (choice) {
+                case 1 -> viewAllAccounts();
+                case 2 -> deleteAccount();
+                case 3 -> deactivateAccount();
+                case 4 -> {
+                    return;
+                }
+                default -> System.out.println("Invalid choice");
+            }
+        }
+    }
+
+    private void viewAllAccounts() {
+        AccountServiceImpl.getSystem()
+                .getAccounts()
+                .forEach(acc -> {
+                    System.out.println(
+                            acc.getUserName() +
+                                    " | Active=" + acc.isActive() +
+                                    " | Admin=" + acc.isAdmin()
+                    );
+                });
+    }
+
+    private void deleteAccount() {
+        System.out.println("Enter username to delete:");
+        String username = InputUtil.readString();
+
+        try {
+            accountService.deleteAccount(username);
+            System.out.println("Account deleted successfully");
+        } catch (AccountNotFoundException | IllegalOperationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void deactivateAccount() {
+        System.out.println("Enter username to deactivate:");
+        String username = InputUtil.readString();
+
+        try {
+            accountService.deactivateAccount(username);
+            System.out.println("Account deactivated successfully");
+        } catch (AccountNotFoundException | IllegalOperationException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+
 }

@@ -21,4 +21,9 @@ public interface AccountService {
     void deposit(Account account, double amount);
 
     void withdraw(Account account, double amount);
+
+    void deleteAccount(String username);
+
+    void deactivateAccount(String username);
+
 }

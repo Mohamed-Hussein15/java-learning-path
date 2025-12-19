@@ -4,34 +4,29 @@ import Exceptions.*;
 import Model.Account;
 import Model.EWalletSystem;
 import Service.AccountService;
+import Service.HistoryService;
+
 import java.util.Optional;
 
 public class AccountServiceImpl implements AccountService {
     private static final EWalletSystem eWalletSystem = new EWalletSystem();
+    private HistoryService historyService = new HistoryServiceImpl();
 
-//    @Override
-//    public boolean createAccount(Account account) {
-//
-//        Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
-//        boolean checkPhoneNumber = eWalletSystem.getAccounts().stream().anyMatch(acc -> acc.getPhoneNumber().equals(account.getPhoneNumber()));
-//        if (optionalAccount.isPresent()) {
-//            return false;
-//        }
-//
-//        if (checkPhoneNumber) {
-//            return false;
-//        }
-//
-//        eWalletSystem.getAccounts().add(account);
-//
-//        return true;
-//    }
+    static {
+        Account admin = new Account("IAM", "Iam@123123", true);
+        eWalletSystem.getAccounts().add(admin);
+    }
+
+    public static EWalletSystem getSystem() {
+        return eWalletSystem;
+    }
 
     @Override
     public void createAccount(Account account) {
 
         Optional<Account> optionalAccount = getOptionalAccountByUsername(account);
-        boolean checkPhoneNumber = eWalletSystem.getAccounts().stream().anyMatch(acc -> acc.getPhoneNumber().equals(account.getPhoneNumber()));
+        boolean checkPhoneNumber = eWalletSystem.getAccounts().stream().anyMatch(acc -> acc.getPhoneNumber() != null && acc.getPhoneNumber().equals(account.getPhoneNumber()));
+
         if (optionalAccount.isPresent()) {
             throw new AccountAlreadyExistException("Account already exist with same username" + account.getUserName());
         }
@@ -41,7 +36,62 @@ public class AccountServiceImpl implements AccountService {
         }
 
         eWalletSystem.getAccounts().add(account);
+        historyService.log(account.getUserName(), "SIGNUP", true);
     }
+
+    @Override
+    public void deleteAccount(String username) {
+
+        Optional<Account> accountOpt = eWalletSystem.getAccounts()
+                .stream()
+                .filter(acc -> acc.getUserName().equals(username))
+                .findFirst();
+
+        if (accountOpt.isEmpty()) {
+            throw new AccountNotFoundException(
+                    "Account with username '" + username + "' does not exist"
+            );
+        }
+
+        Account account = accountOpt.get();
+
+        if (account.isAdmin()) {
+            throw new IllegalOperationException("Admin account cannot be deleted");
+        }
+
+        eWalletSystem.getAccounts().remove(account);
+    }
+
+
+
+    @Override
+    public void deactivateAccount(String username) {
+
+        Optional<Account> accountOpt = eWalletSystem.getAccounts()
+                .stream()
+                .filter(acc -> acc.getUserName().equals(username))
+                .findFirst();
+
+        if (accountOpt.isEmpty()) {
+            throw new AccountNotFoundException(
+                    "Account with username '" + username + "' does not exist"
+            );
+        }
+
+        Account account = accountOpt.get();
+
+        if (account.isAdmin()) {
+            throw new IllegalOperationException("Admin account cannot be inactivated");
+        }
+
+        if (!account.isActive()) {
+            throw new IllegalOperationException("Account is already inactive");
+        }
+
+        account.setActive(false);
+    }
+
+
 
     @Override
     public void transferMoney(Account fromAccount, Account toAccount, double amount) {

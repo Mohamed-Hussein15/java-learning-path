@@ -8,7 +8,17 @@ public class Account {
     String address;
     float age;
 
+    private boolean isAdmin;
+    private boolean isActive = true; // default active
+
     public Account(){}
+
+    public Account(String userName, String password, boolean isAdmin) {
+        this.userName = userName;
+        this.password = password;
+        this.isAdmin = isAdmin;
+        this.isActive = true;
+    }
 
     public Account(String userName, String password) {
         this.userName = userName;
@@ -70,6 +80,18 @@ public class Account {
 
     public void setAge(float age) {
         this.age = age;
+    }
+
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     @Override

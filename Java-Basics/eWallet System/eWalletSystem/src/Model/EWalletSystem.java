@@ -1,13 +1,14 @@
 package Model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class EWalletSystem {
 
     private final String name = "eWalletSystem";
 
     List<Account> accounts = new ArrayList<Account>();
+    private Map<String, List<History>> histories = new HashMap<>();
+
 
     public List<Account> getAccounts() {
         return accounts;
@@ -18,5 +19,9 @@ public class EWalletSystem {
     }
     public String getName() {
         return name;
+    }
+
+    public Map<String, List<History>> getHistories() {
+        return histories;
     }
 }
