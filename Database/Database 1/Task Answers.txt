@@ -1,0 +1,42 @@
+Task1:
+CREATE TABLE Manager (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    age INT,
+    birth_date DATE,
+    address VARCHAR(255)
+);
+
+Task2:
+ALTER TABLE Manager
+DROP COLUMN address;
+
+Task3:
+ALTER TABLE Manager
+ADD (
+    city_address VARCHAR2(100),
+    street VARCHAR2(100)
+);
+
+
+Task4:
+ALTER TABLE Manager
+RENAME COLUMN name TO full_name;
+
+Task5:
+ALTER TABLE Manager READ ONLY;
+
+
+Task6:
+CREATE TABLE Owner AS
+SELECT id, full_name, birth_date
+FROM Manager
+WHERE 1 = 2;
+
+
+Task7:
+ALTER TABLE Manager RENAME TO Master;
+
+Task8:
+DROP TABLE Owner;
+DROP TABLE Master;

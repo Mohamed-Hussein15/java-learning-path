@@ -69,7 +69,7 @@ public class EWalletServiceImpl implements ApplicationService {
         boolean loginSuccess = accountService.getAccountByUsernameAndPassword(account);
 
         if(loginSuccess){
-            // Fetch the REAL stored account (with phone, balance, etc)
+            // Fetch the REAL stored account
             Account realAccount = accountService.getAccountByUsername(account);
 
             System.out.println("login successful");
