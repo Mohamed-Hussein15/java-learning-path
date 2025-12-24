@@ -1,7 +1,7 @@
-package Service;
+package service;
 
-import Model.Account;
-import Model.History;
+import model.Account;
+import model.History;
 import java.util.List;
 
 public interface HistoryService {

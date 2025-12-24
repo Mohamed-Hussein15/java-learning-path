@@ -1,4 +1,4 @@
-package Exceptions;
+package exceptions;
 
 public class InvalidCredentialsException extends RuntimeException {
     public InvalidCredentialsException(String message) {

@@ -1,6 +1,6 @@
-package Service;
+package service;
 
-import Model.Account;
+import model.Account;
 
 public interface AccountService {
 

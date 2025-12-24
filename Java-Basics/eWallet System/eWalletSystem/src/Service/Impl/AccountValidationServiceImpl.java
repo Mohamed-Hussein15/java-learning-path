@@ -1,7 +1,7 @@
-package Service.Impl;
+package service.impl;
 
-import Service.AccountService;
-import Service.AccountValidationService;
+import service.AccountService;
+import service.AccountValidationService;
 
 public class AccountValidationServiceImpl implements AccountValidationService {
     private AccountService accountService = new AccountServiceImpl();

@@ -1,12 +1,12 @@
-package Service.Impl;
+package service.impl;
 
-import Exceptions.*;
-import Model.Account;
-import Service.AccountService;
-import Service.AccountValidationService;
-import Service.ApplicationService;
-import Service.HistoryService;
-import Util.InputUtil;
+import exceptions.*;
+import model.Account;
+import service.AccountService;
+import service.AccountValidationService;
+import service.ApplicationService;
+import service.HistoryService;
+import util.InputUtil;
 import java.util.Objects;
 
 public class EWalletServiceImpl implements ApplicationService {
