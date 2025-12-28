@@ -1,0 +1,74 @@
+/* ================================
+   1. Create Doctor Table
+   ================================ */
+CREATE TABLE Doctor (
+    id NUMBER PRIMARY KEY,
+    name VARCHAR2(50),
+    salary NUMBER,
+    address VARCHAR2(100)
+);
+
+/* ================================
+   2. Insert 10 Records
+   ================================ */
+INSERT INTO Doctor VALUES (1, 'Ahmed', 1000, 'Cairo');
+INSERT INTO Doctor VALUES (2, 'Mohamed', 2000, 'Alex');
+INSERT INTO Doctor VALUES (3, 'Ali', 3000, 'Giza');
+INSERT INTO Doctor VALUES (4, 'Omar', 4000, 'Cairo');
+INSERT INTO Doctor VALUES (5, 'Youssef', 5000, 'Menofia');
+INSERT INTO Doctor VALUES (6, 'Hassan', 6000, 'Tanta');
+INSERT INTO Doctor VALUES (7, 'Khaled', 7000, 'Fayoum');
+INSERT INTO Doctor VALUES (8, 'Mostafa', 8000, 'Suez');
+INSERT INTO Doctor VALUES (9, 'Ibrahim', 9000, 'Aswan');
+INSERT INTO Doctor VALUES (10, 'Mahmoud', 10000, 'Luxor');
+
+COMMIT;
+
+/* ================================
+   3. Update Record ID = 3
+   ================================ */
+UPDATE Doctor
+SET salary = 20000
+WHERE id = 3;
+
+/* ================================
+   4. Delete Record ID = 9
+   ================================ */
+DELETE FROM Doctor
+WHERE id = 9;
+
+COMMIT;
+
+/* ================================
+   5. Concatenate Name with Salary
+   ================================ */
+SELECT name || ' - ' || salary AS name_salary
+FROM Doctor;
+
+/* ================================
+   6. Display Salary * 2
+   ================================ */
+SELECT
+    id,
+    name,
+    salary,
+    salary * 2 AS salary_double,
+    address
+FROM Doctor;
+
+/* ================================
+   7. Select Salary 1000, 2000, 3000
+   ================================ */
+SELECT *
+FROM Doctor
+WHERE salary IN (1000, 2000, 3000);
+
+/* ================================
+   8. Rename Table to PRD_DOCTOR
+   ================================ */
+ALTER TABLE Doctor RENAME TO PRD_DOCTOR;
+
+/* ================================
+   Final Check
+   ================================ */
+SELECT * FROM PRD_DOCTOR;
