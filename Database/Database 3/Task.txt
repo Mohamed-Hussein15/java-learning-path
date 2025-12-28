@@ -1,0 +1,91 @@
+/* 1. Employees with emp_id between 100 and 105 */
+SELECT *
+FROM employees
+WHERE employee_id BETWEEN 100 AND 105;
+
+/* 2. Employees with specific emp_id values */
+SELECT *
+FROM employees
+WHERE employee_id IN (151, 152, 153, 154, 155);
+
+/* 3. First name starts with P or p */
+SELECT *
+FROM employees
+WHERE first_name LIKE 'P%' OR first_name LIKE 'p%';
+
+/* 4. First name ends with A or a */
+SELECT *
+FROM employees
+WHERE first_name LIKE '%A' OR first_name LIKE '%a';
+
+/* 5. First name contains A or a (anywhere) */
+SELECT *
+FROM employees
+WHERE first_name LIKE '%A%' OR first_name LIKE '%a%';
+
+/* 6. Third character of first name is E or e */
+SELECT *
+FROM employees
+WHERE SUBSTR(first_name, 3, 1) IN ('E', 'e');
+
+/* 7. Employees without a manager */
+SELECT *
+FROM employees
+WHERE manager_id IS NULL;
+
+/* 8. Employees with a manager assigned */
+SELECT *
+FROM employees
+WHERE manager_id IS NOT NULL;
+
+/* 9. Insert employee without manager */
+INSERT INTO employees (
+    employee_id, first_name, last_name, email,
+    hire_date, job_id, salary, manager_id
+) VALUES (
+    999, 'Test', 'User', 'TUSER',
+    SYSDATE, 'IT_PROG', 5000, NULL
+);
+
+COMMIT;
+
+/* 10. Employees with job AD_VP or IT_PROG */
+SELECT *
+FROM employees
+WHERE job_id IN ('AD_VP', 'IT_PROG');
+
+/* 11. Sort by last_name ascending */
+SELECT *
+FROM employees
+ORDER BY last_name ASC;
+
+/* 12. Sort by hire_date descending */
+SELECT *
+FROM employees
+ORDER BY hire_date DESC;
+
+/* 13. Sort by department asc, salary desc */
+SELECT *
+FROM employees
+ORDER BY department_id ASC, salary DESC;
+
+/* 14. Last name in lowercase */
+SELECT
+    LOWER(last_name) AS last_name_lower
+FROM employees;
+
+/* 15. First name in uppercase */
+SELECT
+    UPPER(first_name) AS first_name_upper
+FROM employees;
+
+/* 16. First & last name in title case */
+SELECT
+    INITCAP(first_name) AS first_name,
+    INITCAP(last_name) AS last_name
+FROM employees;
+
+/* 17. Employees with last name 'smith' (case-insensitive) */
+SELECT *
+FROM employees
+WHERE LOWER(last_name) = 'smith';
