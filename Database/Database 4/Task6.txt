@@ -1,0 +1,48 @@
+--------------------------------------------------
+-- Q1. Use DECODE to assign grades (same as CASE)
+-- A >= 90, B = 80–89, C = 70–79, F < 70
+--------------------------------------------------
+SELECT 
+    name,
+    marks,
+    DECODE(
+        TRUNC(marks / 10),
+        10, 'A',
+        9,  'A',
+        8,  'B',
+        7,  'C',
+        'F'
+    ) AS grade
+FROM students;
+
+--------------------------------------------------
+-- Q2. Create ORDERS table
+--------------------------------------------------
+CREATE TABLE orders (
+    order_id NUMBER,
+    status   CHAR(1)
+);
+
+--------------------------------------------------
+-- Q3. Insert sample data
+--------------------------------------------------
+INSERT INTO orders VALUES (1, 'P');
+INSERT INTO orders VALUES (2, 'S');
+INSERT INTO orders VALUES (3, 'D');
+
+COMMIT;
+
+--------------------------------------------------
+-- Q4. Use DECODE to display full form of status
+--------------------------------------------------
+SELECT 
+    order_id,
+    status,
+    DECODE(
+        status,
+        'P', 'Pending',
+        'S', 'Shipped',
+        'D', 'Delivered',
+        'Unknown'
+    ) AS status_description
+FROM orders;

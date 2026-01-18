@@ -1,0 +1,191 @@
+/******************************************************************
+1. Character Functions – Part 3 (TRIM, LTRIM, RTRIM)
+******************************************************************/
+
+-- Create table
+CREATE TABLE customers (
+    full_name VARCHAR2(100)
+);
+
+-- Insert data with extra spaces
+INSERT INTO customers VALUES ('   John Doe   ');
+INSERT INTO customers VALUES ('  Alice Smith');
+INSERT INTO customers VALUES ('Bob Brown   ');
+INSERT INTO customers VALUES ('##Michael##');
+
+COMMIT;
+
+-- Remove both leading and trailing spaces
+SELECT TRIM(full_name) AS trimmed_name
+FROM customers;
+
+-- Remove only leading spaces
+SELECT LTRIM(full_name) AS ltrim_name
+FROM customers;
+
+-- Remove only trailing spaces
+SELECT RTRIM(full_name) AS rtrim_name
+FROM customers;
+
+-- Trim specific characters from both sides
+SELECT TRIM('#' FROM full_name) AS trimmed_special
+FROM customers;
+
+------------------------------------------------------------
+
+/******************************************************************
+2. Character Functions – Part 4 (REPLACE, LPAD, RPAD)
+******************************************************************/
+
+-- Replace 'o' with '0'
+SELECT REPLACE('promotion', 'o', '0') AS result
+FROM dual;
+
+-- Replace word in a sentence
+SELECT REPLACE('This is a basic course', 'basic', 'advanced') AS result
+FROM dual;
+
+-- Create departments table
+CREATE TABLE departments (
+    dept_name VARCHAR2(50)
+);
+
+INSERT INTO departments VALUES ('HR');
+INSERT INTO departments VALUES ('InformationTech');
+INSERT INTO departments VALUES ('Sales');
+
+COMMIT;
+
+-- LPAD to 15 characters with '*'
+SELECT LPAD(dept_name, 15, '*') AS lpad_result
+FROM departments;
+
+-- RPAD to 15 characters with '-'
+SELECT RPAD(dept_name, 15, '-') AS rpad_result
+FROM departments;
+
+------------------------------------------------------------
+
+/******************************************************************
+3. TO_CHAR Function
+******************************************************************/
+
+-- Current date DD-MON-YYYY
+SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY') AS formatted_date
+FROM dual;
+
+-- Current date Day, Month YYYY
+SELECT TO_CHAR(SYSDATE, 'Day, Month YYYY') AS formatted_date
+FROM dual;
+
+-- Number with commas and decimals
+SELECT TO_CHAR(1234567.89, '9,999,999.99') AS formatted_number
+FROM dual;
+
+-- Salary with currency symbol
+SELECT TO_CHAR(50000, 'L99,999') AS salary
+FROM dual;
+
+-- Full date & time
+SELECT TO_CHAR(SYSDATE, 'YYYY/MM/DD HH24:MI:SS') AS full_datetime
+FROM dual;
+
+------------------------------------------------------------
+
+/******************************************************************
+4. CASE Expressions
+******************************************************************/
+
+-- Create students table
+CREATE TABLE students (
+    name  VARCHAR2(50),
+    score NUMBER
+);
+
+INSERT INTO students VALUES ('Ahmed', 95);
+INSERT INTO students VALUES ('Mona', 85);
+INSERT INTO students VALUES ('Ali', 75);
+INSERT INTO students VALUES ('Sara', 65);
+INSERT INTO students VALUES ('Omar', 50);
+
+COMMIT;
+
+-- Assign grades
+SELECT name, score,
+       CASE
+           WHEN score >= 90 THEN 'A'
+           WHEN score >= 80 THEN 'B'
+           WHEN score >= 70 THEN 'C'
+           ELSE 'F'
+       END AS grade
+FROM students;
+
+-- Pass / Fail
+SELECT name, score,
+       CASE
+           WHEN score >= 60 THEN 'Pass'
+           ELSE 'Fail'
+       END AS result
+FROM students;
+
+-- Performance message
+SELECT name, score,
+       CASE
+           WHEN score >= 90 THEN 'Excellent'
+           WHEN score >= 80 THEN 'Good'
+           WHEN score >= 70 THEN 'Average'
+           ELSE 'Needs Improvement'
+       END AS message
+FROM students;
+
+-- Day name using system date
+SELECT 'Today is ' || TO_CHAR(SYSDATE, 'Day') AS today
+FROM dual;
+
+------------------------------------------------------------
+
+/******************************************************************
+5. DECODE Function
+******************************************************************/
+
+-- DECODE for grades based on exact score
+SELECT name, score,
+       DECODE(score,
+              100, 'A',
+              90,  'B',
+              80,  'C',
+              'F') AS grade
+FROM students;
+
+-- Create status_log table
+CREATE TABLE status_log (
+    status_code CHAR(1)
+);
+
+INSERT INTO status_log VALUES ('N');
+INSERT INTO status_log VALUES ('I');
+INSERT INTO status_log VALUES ('C');
+
+COMMIT;
+
+-- Decode status codes
+SELECT status_code,
+       DECODE(status_code,
+              'N', 'New',
+              'I', 'In Progress',
+              'C', 'Completed',
+              'Unknown') AS status_desc
+FROM status_log;
+
+-- Product availability
+SELECT DECODE(0, 0, 'Out of Stock', 'Available') AS availability
+FROM dual;
+
+-- Bonus by department
+SELECT dept_name,
+       DECODE(dept_name,
+              'HR', 500,
+              'IT', 1000,
+              'Sales', 1500,
+              300) AS bonus
+FROM departments;

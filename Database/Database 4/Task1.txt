@@ -1,0 +1,55 @@
+--------------------------------------------------
+-- Q1. Create table EMP_TEST with NAME column
+--------------------------------------------------
+CREATE TABLE EMP_TEST (
+    NAME VARCHAR2(50)
+);
+
+--------------------------------------------------
+-- Insert sample data with spaces and symbols
+--------------------------------------------------
+INSERT INTO EMP_TEST VALUES ('   Ahmed   ');
+INSERT INTO EMP_TEST VALUES ('***Mohamed***');
+INSERT INTO EMP_TEST VALUES ('##Sara##');
+
+COMMIT;
+
+--------------------------------------------------
+-- Q2. Remove leading & trailing spaces using TRIM
+--------------------------------------------------
+SELECT
+    NAME,
+    TRIM(NAME) AS TRIMMED_NAME
+FROM EMP_TEST;
+
+--------------------------------------------------
+-- Q3. Remove only leading spaces using LTRIM
+--------------------------------------------------
+SELECT
+    NAME,
+    LTRIM(NAME) AS LTRIM_NAME
+FROM EMP_TEST;
+
+--------------------------------------------------
+-- Q4. Remove only trailing spaces using RTRIM
+--------------------------------------------------
+SELECT
+    NAME,
+    RTRIM(NAME) AS RTRIM_NAME
+FROM EMP_TEST;
+
+--------------------------------------------------
+-- Q5. Remove specific characters from both sides
+--------------------------------------------------
+
+-- Remove '*'
+SELECT
+    NAME,
+    TRIM('*' FROM NAME) AS STAR_TRIMMED
+FROM EMP_TEST;
+
+-- Remove '#'
+SELECT
+    NAME,
+    TRIM('#' FROM NAME) AS HASH_TRIMMED
+FROM EMP_TEST;

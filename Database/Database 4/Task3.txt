@@ -1,0 +1,25 @@
+--------------------------------------------------
+-- Q1. Display current date as 'DD-MON-YYYY'
+--------------------------------------------------
+SELECT TO_CHAR(SYSDATE, 'DD-MON-YYYY') AS CURRENT_DATE
+FROM dual;
+
+--------------------------------------------------
+-- Q2. Display current date as 'Month YYYY'
+--------------------------------------------------
+SELECT TO_CHAR(SYSDATE, 'Month YYYY') AS CURRENT_MONTH_YEAR
+FROM dual;
+
+--------------------------------------------------
+-- Q3. Convert number to character with formatting
+--     12345.67 → 12,345.67
+--------------------------------------------------
+SELECT TO_CHAR(12345.67, '99,999.99') AS FORMATTED_NUMBER
+FROM dual;
+
+--------------------------------------------------
+-- Q4. Show salary formatted with currency symbol
+--     Example salary = 25000
+--------------------------------------------------
+SELECT TO_CHAR(25000, 'L99,999.99') AS FORMATTED_SALARY
+FROM dual;

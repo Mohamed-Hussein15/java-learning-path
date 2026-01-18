@@ -1,0 +1,40 @@
+--------------------------------------------------
+-- Q1. Replace letter 'a' with '@' in 'database'
+--------------------------------------------------
+SELECT REPLACE('database', 'a', '@') AS RESULT
+FROM dual;
+
+--------------------------------------------------
+-- Q2. Replace full word "old" with "new"
+--------------------------------------------------
+SELECT REPLACE('this is old data', 'old', 'new') AS RESULT
+FROM dual;
+
+--------------------------------------------------
+-- Q3. Create PRODUCT table & insert sample data
+--------------------------------------------------
+CREATE TABLE PRODUCT (
+    product_name VARCHAR2(50)
+);
+
+INSERT INTO PRODUCT VALUES ('Laptop');
+INSERT INTO PRODUCT VALUES ('Mobile');
+INSERT INTO PRODUCT VALUES ('Tablet');
+
+COMMIT;
+
+--------------------------------------------------
+-- Q4. LPAD product names to 15 chars with '*'
+--------------------------------------------------
+SELECT
+    product_name,
+    LPAD(product_name, 15, '*') AS LPAD_RESULT
+FROM PRODUCT;
+
+--------------------------------------------------
+-- Q5. RPAD product names to 15 chars with '#'
+--------------------------------------------------
+SELECT
+    product_name,
+    RPAD(product_name, 15, '#') AS RPAD_RESULT
+FROM PRODUCT;
