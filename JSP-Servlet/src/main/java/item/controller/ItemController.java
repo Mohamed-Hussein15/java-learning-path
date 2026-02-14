@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
 import item.model.Item;
+import item.model.ItemDetails;
+import item.model.ItemWithDetails;
 import item.service.ItemService;
 import item.service.impl.ItemServiceImpl;
 //http://localhost:8080/Servlet-JSP/ItemController?name=&price=&totalnumber=
@@ -49,24 +51,30 @@ public class ItemController extends HttpServlet {
 			case "add-item":
 					addItem(request, response);
 				break;
+			case "add-item-details":
+					showAddItemDetails(request, response);
+				break;
+			case "save-item-details":
+					saveItemDetails(request, response);
+				break;
+			case "delete-item-details":
+					deleteItemDetails(request, response);
+				break;
 			case "remove-item":
-				   removeItem(request, response);
-				break;
-			case "update-item":
-				   updateItem(request, response);
-				break;
 			case "delete-item":
 					removeItem(request, response);
 				break;
+			case "update-item":
+					updateItem(request, response);
+				break;
 			case "show-item":
-				   showItem(request, response);
+					showItem(request, response);
 				break;
 			case "show-items":
-				   showItems(request, response);
+					showItems(request, response);
 				break;
 			default:
 				showItems(request, response);
-
 		}
 		
 	}
@@ -78,11 +86,8 @@ public class ItemController extends HttpServlet {
 	private void showItems(HttpServletRequest request, HttpServletResponse response) {
 		 try {
 			ItemService itemService = getItemService();
-			List<Item> items = itemService.getItems();
-			
-			request.setAttribute("allItems", items);
-			
-			// Using RequestDispatcher.forward() - server-side redirect, maintains request/response
+			List<ItemWithDetails> itemsWithDetails = itemService.getItemsWithDetails();
+			request.setAttribute("allItemsWithDetails", itemsWithDetails);
 			request.getRequestDispatcher("/item/show-items.jsp").forward(request, response);
 		} catch (Exception e) {
 			System.out.println("ex => " + e.getMessage());
@@ -93,51 +98,131 @@ public class ItemController extends HttpServlet {
 	private void showItem(HttpServletRequest request, HttpServletResponse response) {
 		try {
 			ItemService itemService = getItemService();
-			
 			Long id = Long.parseLong(request.getParameter("id"));
-			Item item = itemService.getItem(id);
-			
-			request.setAttribute("item", item);
-			
+			ItemWithDetails itemWithDetails = itemService.getItemWithDetails(id);
+			if (itemWithDetails == null) {
+				showItems(request, response);
+				return;
+			}
+			request.setAttribute("item", itemWithDetails.getItem());
+			request.setAttribute("itemWithDetails", itemWithDetails);
 			request.getRequestDispatcher("/item/update-item.jsp").forward(request, response);
 		} catch (Exception e) {
 			System.out.println("ex => " + e.getMessage());
 			e.printStackTrace();
 		}
-		
+	}
+
+	private void showAddItemDetails(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			ItemService itemService = getItemService();
+			Long id = Long.parseLong(request.getParameter("id"));
+			Item item = itemService.getItem(id);
+			if (item == null || itemService.hasItemDetails(id)) {
+				showItems(request, response);
+				return;
+			}
+			request.setAttribute("item", item);
+			request.getRequestDispatcher("/item/add-item-details.jsp").forward(request, response);
+		} catch (Exception e) {
+			System.out.println("ex => " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	private void saveItemDetails(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			ItemService itemService = getItemService();
+			Long itemId = Long.parseLong(request.getParameter("id"));
+			if (itemService.hasItemDetails(itemId)) {
+				showItems(request, response);
+				return;
+			}
+			String desc = request.getParameter("desc");
+			String issueDateStr = request.getParameter("issue_date");
+			String expiryDateStr = request.getParameter("expiry_date");
+			java.util.Date issueDate = parseDate(issueDateStr);
+			java.util.Date expiryDate = parseDate(expiryDateStr);
+			ItemDetails details = new ItemDetails(itemId, desc, issueDate, expiryDate);
+			if (itemService.createItemDetails(details)) {
+				request.setAttribute("successMessage", "Item details added successfully");
+			}
+			showItems(request, response);
+		} catch (Exception e) {
+			System.out.println("ex => " + e.getMessage());
+			e.printStackTrace();
+			showItems(request, response);
+		}
+	}
+
+	private void deleteItemDetails(HttpServletRequest request, HttpServletResponse response) {
+		try {
+			ItemService itemService = getItemService();
+			Long id = Long.parseLong(request.getParameter("id"));
+			itemService.deleteItemDetailsByItemId(id);
+			request.setAttribute("successMessage", "Item details deleted successfully");
+			showItems(request, response);
+		} catch (Exception e) {
+			System.out.println("ex => " + e.getMessage());
+			e.printStackTrace();
+			showItems(request, response);
+		}
+	}
+
+	private static java.util.Date parseDate(String s) {
+		if (s == null || s.trim().isEmpty()) return null;
+		try {
+			return new java.sql.Date(java.sql.Date.valueOf(s.trim()).getTime());
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private void updateItem(HttpServletRequest request, HttpServletResponse response) {
 		try {
 			ItemService itemService = getItemService();
-			
 			Long id = Long.parseLong(request.getParameter("id"));
 			String name = request.getParameter("name");
 			Double price = Double.parseDouble(request.getParameter("price"));
 			Integer totalNumber = Integer.parseInt(request.getParameter("totalNumber"));
-			
-			// Check if item name already exists (excluding current item)
+			String desc = request.getParameter("desc");
+			String issueDateStr = request.getParameter("issue_date");
+			String expiryDateStr = request.getParameter("expiry_date");
+
 			Item existingItem = itemService.getItemByName(name);
 			if (existingItem != null && !existingItem.getId().equals(id)) {
 				request.setAttribute("errorMessage", "Item name already exists in the system");
-				Item item = itemService.getItem(id);
-				request.setAttribute("item", item);
+				ItemWithDetails iwd = itemService.getItemWithDetails(id);
+				request.setAttribute("item", iwd != null ? iwd.getItem() : itemService.getItem(id));
+				request.setAttribute("itemWithDetails", iwd);
 				request.getRequestDispatcher("/item/update-item.jsp").forward(request, response);
 				return;
 			}
-			
+
 			Item item = new Item(id, name, price, totalNumber);
 			Boolean isItemUpdated = itemService.updateItem(item);
-			
-			if (isItemUpdated) {
-				request.setAttribute("successMessage", "Item updated successfully");
-				showItems(request, response);
-			} else {
+			if (!isItemUpdated) {
 				request.setAttribute("errorMessage", "Failed to update item");
-				Item currentItem = itemService.getItem(id);
-				request.setAttribute("item", currentItem);
+				ItemWithDetails iwd = itemService.getItemWithDetails(id);
+				request.setAttribute("item", item);
+				request.setAttribute("itemWithDetails", iwd);
 				request.getRequestDispatcher("/item/update-item.jsp").forward(request, response);
+				return;
 			}
+
+			// Update or create ITEM_DETAILS (Level 2: update includes both ITEM and ITEM_DETAILS)
+			java.util.Date issueDate = parseDate(issueDateStr);
+			java.util.Date expiryDate = parseDate(expiryDateStr);
+			if (itemService.hasItemDetails(id)) {
+				ItemDetails details = new ItemDetails(id, desc, issueDate, expiryDate);
+				itemService.updateItemDetails(details);
+			} else if (desc != null || issueDate != null || expiryDate != null) {
+				ItemDetails details = new ItemDetails(id, desc, issueDate, expiryDate);
+				itemService.createItemDetails(details);
+			}
+
+			request.setAttribute("successMessage", "Item updated successfully");
+			showItems(request, response);
 		} catch (Exception e) {
 			System.out.println("ex => " + e.getMessage());
 			e.printStackTrace();
@@ -145,25 +230,23 @@ public class ItemController extends HttpServlet {
 			try {
 				Long id = Long.parseLong(request.getParameter("id"));
 				ItemService itemService = getItemService();
-				Item item = itemService.getItem(id);
-				request.setAttribute("item", item);
+				ItemWithDetails iwd = itemService.getItemWithDetails(id);
+				request.setAttribute("item", iwd != null ? iwd.getItem() : itemService.getItem(id));
+				request.setAttribute("itemWithDetails", iwd);
 				request.getRequestDispatcher("/item/update-item.jsp").forward(request, response);
 			} catch (Exception ex) {
 				showItems(request, response);
 			}
 		}
-		
 	}
 
 	private void removeItem(HttpServletRequest request, HttpServletResponse response) {
 		try {
 			ItemService itemService = getItemService();
-			
 			Long id = Long.parseLong(request.getParameter("id"));
-			
-			// Soft delete - mark as deleted instead of removing from database
+			// Level 2: Remove from ITEM_DETAILS first, then soft-delete ITEM
+			itemService.deleteItemDetailsByItemId(id);
 			Boolean isItemDeleted = itemService.removeItem(id);
-			
 			if (isItemDeleted) {
 				request.setAttribute("successMessage", "Item deleted successfully");
 			} else {
@@ -176,7 +259,6 @@ public class ItemController extends HttpServlet {
 			request.setAttribute("errorMessage", "An error occurred: " + e.getMessage());
 			showItems(request, response);
 		}
-		
 	}
 
 	private void addItem(HttpServletRequest request, HttpServletResponse response) {

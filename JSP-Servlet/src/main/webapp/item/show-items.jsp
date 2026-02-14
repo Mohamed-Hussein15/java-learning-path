@@ -1,7 +1,15 @@
+<%@page import="item.model.ItemWithDetails"%>
 <%@page import="item.model.Item"%>
 <%@page import="java.util.List"%>
+<%@page import="java.text.SimpleDateFormat"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%! private static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd"); %>
+<%
+  Boolean loggedIn = (Boolean) session.getAttribute("loggedIn");
+  boolean showLogout = Boolean.TRUE.equals(loggedIn);
+  String contextPath = request.getContextPath();
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,15 +154,39 @@ td a:first-child:hover {
 }
 
 /* Delete button */
-td a:last-child {
+td a:nth-child(2) {
     background: linear-gradient(45deg, #f44336, #FF9800);
     color: white;
     box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
 }
 
-td a:last-child:hover {
+td a:nth-child(2):hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
+}
+
+/* Add Item Details button - visible when no details */
+td a.btn-details {
+    background: linear-gradient(45deg, #2196F3, #03A9F4);
+    color: white;
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+}
+
+td a.btn-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+/* Delete Item Details button - visible when has details */
+td a.btn-del-details {
+    background: linear-gradient(45deg, #9C27B0, #E91E63);
+    color: white;
+    box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3);
+}
+
+td a.btn-del-details:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(156, 39, 176, 0.4);
 }
 
 /* Add button */
@@ -287,6 +319,11 @@ tbody tr:nth-child(n+4) { animation-delay: 0.4s; }
 </head>
 <body>
 <div class="layer">
+    <% if (showLogout) { %>
+    <p style="text-align:right; margin-bottom:15px;">
+        <a href="<%= contextPath %>/AuthController?action=logout" style="padding:10px 20px; background:#f44336; color:white; text-decoration:none; border-radius:8px; font-weight:600;">Logout</a>
+    </p>
+    <% } %>
     <table>
         <h1>Items</h1>
         <thead>
@@ -295,27 +332,46 @@ tbody tr:nth-child(n+4) { animation-delay: 0.4s; }
             <th>NAME</th>
             <th>PRICE</th>
             <th>TOTAL_NUMBER</th>
+            <th>DESC</th>
+            <th>ISSUE_DATE</th>
+            <th>EXPIRY_DATE</th>
             <th>Action</th>
         </tr>
         </thead>
         <tbody>
         <%
-        	List<Item> items = (List<Item>) request.getAttribute("allItems");
-        
-        	for(Item item : items){
+        	@SuppressWarnings("unchecked")
+        	List<ItemWithDetails> rows = (List<ItemWithDetails>) request.getAttribute("allItemsWithDetails");
+        	if (rows != null) for (ItemWithDetails iwd : rows) {
+        	    Item item = iwd.getItem();
+        	    String descVal = "";
+        	    String issueVal = "";
+        	    String expiryVal = "";
+        	    if (iwd.hasDetails() && iwd.getDetails() != null) {
+        	        if (iwd.getDetails().getDescription() != null) descVal = iwd.getDetails().getDescription();
+        	        if (iwd.getDetails().getIssueDate() != null) issueVal = SDF.format(iwd.getDetails().getIssueDate());
+        	        if (iwd.getDetails().getExpiryDate() != null) expiryVal = SDF.format(iwd.getDetails().getExpiryDate());
+        	    }
         %>
 	        <tr>
-	            <td><%=item.getId() %></td>
-	            <td><%=item.getName() %></td>
-	            <td><%=item.getPrice() %></td>
-	            <td><%=item.getTotalNumber() %></td>
+	            <td><%= item.getId() %></td>
+	            <td><%= item.getName() %></td>
+	            <td><%= item.getPrice() %></td>
+	            <td><%= item.getTotalNumber() %></td>
+	            <td><%= descVal %></td>
+	            <td><%= issueVal %></td>
+	            <td><%= expiryVal %></td>
 	            <td>
-	                <a href="/Servlet-JSP/ItemController?action=show-item&id=<%=item.getId()%>">Update</a>
-	                <a href="/Servlet-JSP/ItemController?action=remove-item&id=<%=item.getId()%>">Delete</a>
+	                <a href="/Servlet-JSP/ItemController?action=show-item&id=<%= item.getId() %>">Update</a>
+	                <a href="/Servlet-JSP/ItemController?action=remove-item&id=<%= item.getId() %>">Delete</a>
+	                <% if (!iwd.hasDetails()) { %>
+	                <a href="/Servlet-JSP/ItemController?action=add-item-details&id=<%= item.getId() %>" class="btn-details">Add Item Details</a>
+	                <% } else { %>
+	                <a href="/Servlet-JSP/ItemController?action=delete-item-details&id=<%= item.getId() %>" class="btn-del-details">Delete Item Details</a>
+	                <% } %>
 	            </td>
 	        </tr>
         <% } %>
-        
         </tbody>
     </table>
 

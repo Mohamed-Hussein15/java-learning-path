@@ -1,6 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
+<%@page import="item.model.ItemWithDetails"%>
+<%@page import="item.model.ItemDetails"%>
+<%@page import="java.text.SimpleDateFormat"%>
 <!DOCTYPE html>
+<%
+  ItemWithDetails itemWithDetails = (ItemWithDetails) request.getAttribute("itemWithDetails");
+  item.model.Item item = (item.model.Item) request.getAttribute("item");
+  String descVal = "";
+  String issueVal = "";
+  String expiryVal = "";
+  if (itemWithDetails != null && itemWithDetails.getDetails() != null) {
+    ItemDetails d = itemWithDetails.getDetails();
+    if (d.getDescription() != null) descVal = d.getDescription();
+    if (d.getIssueDate() != null) issueVal = new SimpleDateFormat("yyyy-MM-dd").format(d.getIssueDate());
+    if (d.getExpiryDate() != null) expiryVal = new SimpleDateFormat("yyyy-MM-dd").format(d.getExpiryDate());
+  }
+  if (item == null) item = itemWithDetails != null ? itemWithDetails.getItem() : null;
+%>
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
@@ -450,13 +467,13 @@ form {
   <form action="/Servlet-JSP/ItemController" method="post" onsubmit="return validateForm()">
     <div class="form-row">
       <div class="input-data">
-        <input type="text" required name="name" id="name" value="${item.name}" pattern=".{2,}" title="Name must be at least 2 characters">
+        <input type="text" required name="name" id="name" value="<%= item != null ? item.getName() : "" %>" pattern=".{2,}" title="Name must be at least 2 characters">
         <div class="underline"></div>
         <label>Name</label>
         <span class="error-message">Name must be at least 2 characters</span>
       </div>
       <div class="input-data">
-        <input type="number" required name="price" id="price" value="${item.price}" step="0.01" min="0.01" title="Price must be a positive number">
+        <input type="number" required name="price" id="price" value="<%= item != null ? item.getPrice() : "" %>" step="0.01" min="0.01" title="Price must be a positive number">
         <div class="underline"></div>
         <label>PRICE</label>
         <span class="error-message">Price must be a positive number</span>
@@ -464,15 +481,33 @@ form {
     </div>
     <div class="form-row">
       <div class="input-data">
-        <input type="number" required name="totalNumber" id="totalNumber" value="${item.totalNumber}" min="0" step="1" title="Total number must be a non-negative integer">
+        <input type="number" required name="totalNumber" id="totalNumber" value="<%= item != null ? item.getTotalNumber() : "" %>" min="0" step="1" title="Total number must be a non-negative integer">
         <div class="underline"></div>
         <label>TOTAL_NUMBER</label>
         <span class="error-message">Total number must be a non-negative integer</span>
       </div>
-
-	<input type="hidden" name="id" value="${item.id}">
-	<input type="hidden" required name="action" value="update-item">
     </div>
+    <div class="form-row">
+      <div class="input-data">
+        <input type="text" name="desc" id="desc" value="<%= descVal %>" placeholder="Description">
+        <div class="underline"></div>
+        <label>DESC (Item Details)</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="input-data">
+        <input type="date" name="issue_date" id="issue_date" value="<%= issueVal %>">
+        <div class="underline"></div>
+        <label>ISSUE_DATE</label>
+      </div>
+      <div class="input-data">
+        <input type="date" name="expiry_date" id="expiry_date" value="<%= expiryVal %>">
+        <div class="underline"></div>
+        <label>EXPIRY_DATE</label>
+      </div>
+    </div>
+    <input type="hidden" name="id" value="<%= item != null ? item.getId() : "" %>">
+    <input type="hidden" name="action" value="update-item">
     <input type="submit" value="Update" class="button">
   </form>
 

@@ -15,10 +15,10 @@
         <res-auth>Container</res-auth>
     </resource-ref>
     
-    <!-- Welcome File List -->
+    <!-- Welcome File List: redirect to login or items -->
     <welcome-file-list>
-        <welcome-file>index.html</welcome-file>
         <welcome-file>index.jsp</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
     
     <!-- Servlet Declaration -->
@@ -33,6 +33,27 @@
         <servlet-name>ItemController</servlet-name>
         <url-pattern>/ItemController</url-pattern>
     </servlet-mapping>
+
+    <!-- Auth Controller (Login, Signup, Logout) -->
+    <servlet>
+        <servlet-name>AuthController</servlet-name>
+        <servlet-class>user.controller.AuthController</servlet-class>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AuthController</servlet-name>
+        <url-pattern>/AuthController</url-pattern>
+    </servlet-mapping>
+
+    <!-- Auth Filter: protect ItemController, redirect to login if not logged in -->
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>user.filter.AuthFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/ItemController</url-pattern>
+    </filter-mapping>
     
 </web-app>
 
